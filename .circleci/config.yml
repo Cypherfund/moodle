@@ -19,7 +19,7 @@ jobs:
       - docker/push:
           image: ${REGISTRY_USER}/moodle
           tag: << pipeline.number >>_${CIRCLE_SHA1}
-          registry: ${DOCKER_REGISTRY}          - .
+          registry: ${DOCKER_REGISTRY}
 
   deploy-prod:
     machine:
