@@ -21,7 +21,7 @@ jobs:
           tag: << pipeline.number >>_${CIRCLE_SHA1}
           registry: ${DOCKER_REGISTRY}          - .
 
-  deploy:
+  deploy-prod:
     machine:
       image: ubuntu-2204:2022.04.2
     steps:
