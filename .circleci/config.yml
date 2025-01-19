@@ -1,0 +1,64 @@
+version: 2.1
+orbs:
+  node: circleci/node@5.1.0
+  docker: circleci/docker@2.4.0
+jobs:
+  build-image:
+    executor: docker/docker
+    steps:
+      - checkout
+      - setup_remote_docker
+      - docker/check:
+          docker-password: REGISTRY_PASSWORD
+          docker-username: REGISTRY_USER
+          registry: ${DOCKER_REGISTRY}
+      - docker/build:
+          image: ${REGISTRY_USER}/moodle
+          tag: << pipeline.number >>_${CIRCLE_SHA1}
+          registry: ${DOCKER_REGISTRY}
+      - docker/push:
+          image: ${REGISTRY_USER}/moodle
+          tag: << pipeline.number >>_${CIRCLE_SHA1}
+          registry: ${DOCKER_REGISTRY}          - .
+
+  deploy:
+    machine:
+      image: ubuntu-2204:2022.04.2
+    steps:
+      - add_ssh_keys:
+          fingerprints: [ "9b:c3:18:8c:43:0e:5e:1e:05:73:e4:5c:57:84:ec:99" ]
+      - run:
+          name: checkout helm chart repository
+          command: |
+            git clone git@github.com:Cypherfund/helm-charts.git -b main
+            cd helm-charts
+      - run:
+          name: update values file
+          command: |
+            cd helm-charts && ls -l
+            sed -i "s/tag:.*/tag: << pipeline.number >>_${CIRCLE_SHA1}/g" tech-ascend-charts/moodle/values.yaml
+            git add tech-ascend-charts/moodle/values.yaml
+      - run:
+          name: update build
+          command: |
+            ls
+            cd helm-charts
+            git commit -m "update moodle app image tag to << pipeline.number >>_${CIRCLE_SHA1}"
+            git push origin main
+
+workflows:
+  build-and-deploy:
+    jobs:
+      - build-image:
+          filters:
+            branches:
+              only:
+                - techascend-moodle-main
+      - deploy-prod:
+          requires:
+            - build-image
+          context: tech-ascend-context
+          filters:
+            branches:
+              only:
+                - techascend-moodle-main
