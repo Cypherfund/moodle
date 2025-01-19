@@ -3,7 +3,7 @@ FROM bitnami/moodle:latest
 
 # Copy your forked Moodle code into the image.
 # (Assuming your custom code is in the ./moodle folder)
-COPY ./moodle /bitnami/moodle
+COPY . /bitnami/moodle
 
 # Adjust permissions if necessary. This example ensures the web server can write to the Moodle folder.
 RUN chown -R daemon:daemon /bitnami/moodle
