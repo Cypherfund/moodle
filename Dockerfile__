@@ -1,0 +1,9 @@
+# Use an official Moodle base image (e.g., Bitnami’s image) as a starting point.
+FROM bitnami/moodle:latest
+
+# Copy your forked Moodle code into the image.
+# (Assuming your custom code is in the ./moodle folder)
+COPY ./moodle/ /bitnami/moodle/
+
+# List the contents of /bitnami/moodle/ to verify your files.
+RUN ls -l /bitnami
