@@ -23,7 +23,7 @@ jobs:
 
   deploy-prod:
     machine:
-      image: ubuntu-2204:2022.04.2
+      image: default
     steps:
       - add_ssh_keys:
           fingerprints: [ "9b:c3:18:8c:43:0e:5e:1e:05:73:e4:5c:57:84:ec:99" ]
