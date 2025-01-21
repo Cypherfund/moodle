@@ -45,8 +45,20 @@ RUN apt-get update && \
 
 # Configure Apache:
 # Copy the default virtual host and change the DocumentRoot from /var/www/html to /var/www/moodle.
+# Configure Apache for Moodle and ekati-app.
 RUN cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/moodle.conf && \
-    sed -i 's|/var/www/html|/var/www/moodle|g' /etc/apache2/sites-available/moodle.conf && \
+    echo '<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www/moodle
+    Alias /ekati-app /var/www/moodle
+    <Directory /var/www/moodle>
+        Options FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>' > /etc/apache2/sites-available/moodle.conf && \
     a2ensite moodle.conf && \
     a2dissite 000-default.conf && \
     a2enmod rewrite
@@ -66,8 +78,6 @@ COPY . /var/www/moodle/
 RUN chown -R www-data:www-data /var/www/moodle && \
     chmod -R 755 /var/www/moodle
 
-# Verify that the Moodle directory is populated.
-RUN ls -l /var/www/moodle
 
 # (Optional) Add your own PHP configuration overrides.
 # Create a custom php.ini file (see the sample below) and copy it into the image.
