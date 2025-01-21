@@ -36,8 +36,6 @@ RUN apt-get update && \
       aspell \
       git \
       clamav \
-      mariadb-server \
-      mariadb-client \
       supervisor \
       cron && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -45,20 +43,8 @@ RUN apt-get update && \
 
 # Configure Apache:
 # Copy the default virtual host and change the DocumentRoot from /var/www/html to /var/www/moodle.
-# Configure Apache for Moodle and ekati-app.
 RUN cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/moodle.conf && \
-    echo '<VirtualHost *:80>
-    ServerAdmin webmaster@localhost
-    DocumentRoot /var/www/moodle
-    Alias /ekati-app /var/www/moodle
-    <Directory /var/www/moodle>
-        Options FollowSymLinks
-        AllowOverride All
-        Require all granted
-    </Directory>
-    ErrorLog ${APACHE_LOG_DIR}/error.log
-    CustomLog ${APACHE_LOG_DIR}/access.log combined
-</VirtualHost>' > /etc/apache2/sites-available/moodle.conf && \
+    sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/moodle\n    Alias /ekati-app /var/www/moodle|g' /etc/apache2/sites-available/moodle.conf && \
     a2ensite moodle.conf && \
     a2dissite 000-default.conf && \
     a2enmod rewrite
@@ -83,11 +69,11 @@ RUN chown -R www-data:www-data /var/www/moodle && \
 # Create a custom php.ini file (see the sample below) and copy it into the image.
 COPY custom-php.ini /etc/php/8.1/apache2/conf.d/99-custom.ini
 
-# Configure Supervisor to run both Apache and MariaDB.
+# Configure Supervisor to run both Apache.
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Expose HTTP and HTTPS ports.
 EXPOSE 80 443
 
-# Start Supervisor (which will run Apache and MariaDB in the foreground).
+# Start Supervisor (which will run Apache in the foreground).
 CMD ["/usr/bin/supervisord", "-n"]
