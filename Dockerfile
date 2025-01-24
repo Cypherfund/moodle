@@ -44,7 +44,7 @@ RUN apt-get update && \
 # Configure Apache:
 # Copy the default virtual host and change the DocumentRoot from /var/www/html to /var/www/moodle.
 RUN cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/moodle.conf && \
-    sed -i 's|/var/www/html|/var/www/moodle|g' /etc/apache2/sites-available/moodle.conf && \
+    sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/moodle\n    Alias /ekati-app /var/www/moodle|g' /etc/apache2/sites-available/moodle.conf && \
     a2ensite moodle.conf && \
     a2dissite 000-default.conf && \
     a2enmod rewrite
