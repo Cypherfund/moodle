@@ -33,7 +33,6 @@ RUN apt-get update && \
       php8.1-soap \
       php8.1-mbstring \
       openssl \
-      mod_ssl \
       graphviz \
       aspell \
       git \
