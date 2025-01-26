@@ -4,9 +4,9 @@ FROM debian:11
 # Set non-interactive mode for apt-get.
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install Apache, PHP7.4 (and its modules), MariaDB server/client,
+# Install Apache, PHP8.1 (and its modules), MariaDB server/client,
 # git, and other tools (clamav, graphviz, aspell) as well as supervisor and cron.
-# Install prerequisites including wget and gnupg
+# Install prerequisites including wget and gnupg.
 RUN apt-get update && \
     apt-get install -y \
       software-properties-common \
@@ -19,8 +19,8 @@ RUN apt-get update && \
     apt-get update && \
     apt-get install -y \
       apache2 \
-      php8.1 \
       libapache2-mod-php8.1 \
+      php8.1 \
       php8.1-mysql \
       php8.1-pspell \
       php8.1-curl \
@@ -32,6 +32,8 @@ RUN apt-get update && \
       php8.1-zip \
       php8.1-soap \
       php8.1-mbstring \
+      openssl \
+      mod_ssl \
       graphviz \
       aspell \
       git \
@@ -40,13 +42,15 @@ RUN apt-get update && \
       cron && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-
 # Configure Apache:
+# Enable SSL module and default SSL configuration.
+RUN a2enmod ssl rewrite && \
+    a2ensite default-ssl.conf
+
 # Copy the default virtual host and change the DocumentRoot from /var/www/html to /var/www/moodle.
 COPY moodle.conf /etc/apache2/sites-available/moodle.conf
 RUN a2ensite moodle.conf && \
-    a2dissite 000-default.conf && \
-    a2enmod rewrite
+    a2dissite 000-default.conf
 
 # Create required directories for Moodle and its data.
 RUN mkdir -p /var/www/moodle /var/www/moodledata
@@ -63,9 +67,7 @@ COPY . /var/www/moodle/
 RUN chown -R www-data:www-data /var/www/moodle && \
     chmod -R 755 /var/www/moodle
 
-
-# (Optional) Add your own PHP configuration overrides.
-# Create a custom php.ini file (see the sample below) and copy it into the image.
+# Add your own PHP configuration overrides.
 COPY custom-php.ini /etc/php/8.1/apache2/conf.d/99-custom.ini
 
 # Configure Supervisor to run both Apache.
